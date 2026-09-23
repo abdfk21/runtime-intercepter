@@ -1,0 +1,13 @@
+### Table 7: Ablation Study Across Individual Signals and Calibration
+
+| Configuration           |   Threshold |   Precision |   Recall |   F1 Score |   Accuracy |
+|:------------------------|------------:|------------:|---------:|-----------:|-----------:|
+| Full System             |        0.45 |       0.839 |    0.302 |      0.444 |      0.629 |
+| Schema Only             |        0.15 |       1     |    0.244 |      0.393 |      0.629 |
+| Reasoning Only          |        0.15 |       0.485 |    0.977 |      0.649 |      0.48  |
+| Nli Only                |        0.21 |       0.75  |    0.174 |      0.283 |      0.566 |
+| Schema Plus Reasoning   |        0.55 |       1     |    0.151 |      0.263 |      0.583 |
+| Schema Plus Nli         |        0.15 |       0.878 |    0.419 |      0.567 |      0.686 |
+| Reasoning Plus Nli      |        0.57 |       0.75  |    0.174 |      0.283 |      0.566 |
+| No Adaptive Calibration |        0.5  |       0.839 |    0.302 |      0.444 |      0.629 |
+| Adaptive Calibration    |        0.45 |       0.839 |    0.302 |      0.444 |      0.629 |

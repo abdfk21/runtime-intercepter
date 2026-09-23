@@ -1,0 +1,55 @@
+architectures:
+  sequential:
+    enabled: true
+    description: "Linear chain pipeline: Researcher -> Verifier -> Critic -> Synthesizer"
+    stages:
+      - name: "researcher"
+        role: "Gathers initial claims, evidence, and preliminary response"
+      - name: "verifier"
+        role: "Cross-checks facts, validates evidence, flags ungrounded statements"
+      - name: "critic"
+        role: "Evaluates internal consistency, edge cases, counterarguments"
+      - name: "synthesizer"
+        role: "Generates final coherent, verified answer"
+    handoffs_to_intercept:
+      - ["researcher", "verifier"]
+      - ["verifier", "critic"]
+      - ["critic", "synthesizer"]
+
+  hierarchical:
+    enabled: true
+    description: "Centralized supervisor delegating to specialist agents before final synthesis"
+    supervisor_role: "Orchestrates planning, dispatches subtasks, consolidates outputs"
+    sub_agents:
+      - "researcher"
+      - "verifier"
+      - "specialist"
+      - "critic"
+    synthesis_agent: "synthesizer"
+    handoffs_to_intercept:
+      - ["supervisor", "researcher"]
+      - ["researcher", "supervisor"]
+      - ["supervisor", "verifier"]
+      - ["verifier", "supervisor"]
+      - ["supervisor", "specialist"]
+      - ["specialist", "supervisor"]
+      - ["supervisor", "critic"]
+      - ["critic", "supervisor"]
+      - ["supervisor", "synthesizer"]
+
+  parallel_consensus:
+    enabled: true
+    description: "Concurrent multi-perspective generation with consensus and verification layers"
+    parallel_agents:
+      - "researcher_a"
+      - "researcher_b"
+      - "researcher_c"
+    consensus_agent: "consensus_layer"
+    verifier_agent: "verifier"
+    synthesizer_agent: "synthesizer"
+    handoffs_to_intercept:
+      - ["researcher_a", "consensus_layer"]
+      - ["researcher_b", "consensus_layer"]
+      - ["researcher_c", "consensus_layer"]
+      - ["consensus_layer", "verifier"]
+      - ["verifier", "synthesizer"]

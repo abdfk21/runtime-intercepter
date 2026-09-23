@@ -1,0 +1,12 @@
+### Table 1: Benchmark Dataset Task Distribution
+
+| Task Category          |   Count |   Percentage (%) |
+|:-----------------------|--------:|-----------------:|
+| Factual Qa             |      43 |             12.5 |
+| Summarization          |      43 |             12.5 |
+| Planning               |      43 |             12.5 |
+| Multi Step Reasoning   |      43 |             12.5 |
+| Information Extraction |      43 |             12.5 |
+| Comparison             |      43 |             12.5 |
+| Numerical Reasoning    |      43 |             12.5 |
+| Research Synthesis     |      43 |             12.5 |

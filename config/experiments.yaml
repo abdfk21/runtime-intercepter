@@ -1,0 +1,48 @@
+experiments:
+  random_seed: 42
+  validation_size: 350
+  alpha: 0.05
+  bootstrap_iterations: 1000
+  
+  evaluation_conditions:
+    - "INTERCEPTOR_ON"
+    - "INTERCEPTOR_OFF"
+
+  architectures_to_evaluate:
+    - "sequential"
+    - "hierarchical"
+    - "parallel_consensus"
+
+  models_to_evaluate:
+    - "mock"
+    - "gemini"
+    - "groq"
+    - "ollama"
+
+  fault_types:
+    - "factual_mutation"
+    - "numerical_mutation"
+    - "entity_substitution"
+    - "date_mutation"
+    - "contradiction_insertion"
+    - "unsupported_claim_insertion"
+    - "missing_evidence"
+    - "confidence_inflation"
+    - "context_corruption"
+    - "source_mismatch"
+
+  task_categories:
+    - "factual_qa"
+    - "summarization"
+    - "planning"
+    - "multi_step_reasoning"
+    - "information_extraction"
+    - "comparison"
+    - "numerical_reasoning"
+    - "research_synthesis"
+
+  export_formats:
+    - "csv"
+    - "markdown"
+    - "latex"
+    - "json"

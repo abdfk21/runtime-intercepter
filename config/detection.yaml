@@ -1,0 +1,49 @@
+detection:
+  enabled: true
+  interceptor_mode: "active" # active (intervene) or passive (monitor only)
+  
+  # Default fusion weights (can be updated by calibration)
+  weights:
+    schema_weight: 0.25
+    reasoning_weight: 0.40
+    consistency_weight: 0.35
+
+  # Default decision thresholds (before per-model calibration)
+  default_threshold: 0.50
+  warning_threshold: 0.35
+  block_threshold: 0.80
+
+  # Signal 1: Schema Validator
+  schema_validator:
+    enabled: true
+    strict_pydantic: true
+    require_claims: true
+    require_evidence: true
+    min_confidence: 0.0
+    max_confidence: 1.0
+
+  # Signal 2: Reasoning & Claim Monitor
+  reasoning_monitor:
+    enabled: true
+    min_evidence_similarity: 0.35
+    max_unsupported_claim_ratio: 0.25
+    detect_excessive_certainty: true
+    detect_numerical_hallucinations: true
+    detect_internal_contradictions: true
+
+  # Signal 3: NLI Cross-Agent Consistency
+  nli_checker:
+    enabled: true
+    model_name: "cross-encoder/nli-deberta-v3-xsmall"
+    fallback_heuristic: true
+    contradiction_threshold: 0.45
+    entailment_bonus: 0.20
+    cache_enabled: true
+    max_cache_size: 2000
+
+  # Repair loop settings
+  repair:
+    enabled: true
+    max_retries: 2
+    feedback_mode: "structured"
+    include_violating_claims: true

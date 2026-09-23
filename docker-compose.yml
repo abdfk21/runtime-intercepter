@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  interceptor-app:
+    build: .
+    container_name: runtime_interceptor
+    ports:
+      - "8000:8000"
+    environment:
+      - DEFAULT_PROVIDER=mock
+      - DATABASE_URL=sqlite:///./data/interceptor.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    restart: unless-stopped

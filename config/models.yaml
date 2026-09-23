@@ -1,0 +1,38 @@
+models:
+  gemini:
+    provider: "gemini"
+    enabled: true
+    model_name: "gemini-2.5-flash"
+    api_key_env: "GEMINI_API_KEY"
+    temperature: 0.2
+    max_tokens: 1024
+    description: "Google Gemini 2.5 Flash model"
+  groq:
+    provider: "groq"
+    enabled: true
+    model_name: "llama-3.3-70b-versatile"
+    api_key_env: "GROQ_API_KEY"
+    temperature: 0.2
+    max_tokens: 1024
+    description: "Groq high-speed Llama 3.3 model"
+  ollama:
+    provider: "ollama"
+    enabled: true
+    model_name: "llama3"
+    base_url_env: "OLLAMA_BASE_URL"
+    base_url_default: "http://localhost:11434"
+    temperature: 0.2
+    max_tokens: 1024
+    description: "Local Ollama Llama 3 model"
+  mock:
+    provider: "mock"
+    enabled: true
+    model_name: "deterministic-mock-v1"
+    temperature: 0.0
+    max_tokens: 1024
+    description: "Deterministic offline mock LLM provider for zero-cost reproduction, tests, and faculty demo"
+
+default_provider: "mock"
+fallback_chain:
+  - "mock"
+  - "ollama"

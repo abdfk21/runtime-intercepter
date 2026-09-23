@@ -1,0 +1,19 @@
+calibration:
+  enabled: true
+  optimization_target: "f1" # f1, precision, recall, balanced_accuracy
+  min_precision_constraint: 0.65
+  threshold_search_grid:
+    min: 0.10
+    max: 0.90
+    step: 0.02
+  weight_search_grid:
+    schema_range: [0.10, 0.40]
+    reasoning_range: [0.20, 0.50]
+    consistency_range: [0.20, 0.50]
+    step: 0.05
+  split:
+    calibration_ratio: 0.50
+    test_ratio: 0.50
+    stratified: true
+    random_seed: 42
+  profiles_dir: "data/calibration_profiles"
