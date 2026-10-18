@@ -1,5 +1,6 @@
 """LLM Provider Factory with transparent fallback tracking."""
 
+import os
 from typing import Any, Dict, Optional, Tuple
 from app.core.config import settings
 from app.core.logging import logger
@@ -30,13 +31,13 @@ class LLMFactory:
                 model_name=model_name or "deterministic-mock-v1", seed=seed
             ),
             "gemini": lambda: GeminiProvider(
-                model_name=model_name or "gemini-2.5-flash"
+                model_name=model_name or os.getenv("GEMINI_MODEL") or "gemini-flash-lite-latest"
             ),
             "groq": lambda: GroqProvider(
-                model_name=model_name or "llama-3.3-70b-versatile"
+                model_name=model_name or os.getenv("GROQ_MODEL") or "openai/gpt-oss-120b"
             ),
             "ollama": lambda: OllamaProvider(
-                model_name=model_name or "llama3"
+                model_name=model_name or os.getenv("OLLAMA_MODEL") or "llama3"
             ),
         }
 
@@ -44,10 +45,12 @@ class LLMFactory:
             raise ValueError(f"Unknown LLM provider requested: {requested}. Supported: {list(provider_map.keys())}")
 
         provider = provider_map[requested]()
+        fallback_reason = None
 
         # Verify availability
         if not provider.health_check():
             if allow_fallback:
+                fallback_reason = f"Provider '{requested}' failed health check or lacks credentials. Fallback to mock."
                 logger.warning(
                     f"Requested provider '{requested}' is unavailable or lacks API keys. Falling back to MockProvider."
                 )
@@ -64,6 +67,7 @@ class LLMFactory:
             "requested_provider": requested,
             "actual_provider": actual,
             "fallback_used": fallback_used,
+            "fallback_reason": fallback_reason,
             "model_name": provider.get_model_name(),
         }
         return provider, metadata

@@ -4,10 +4,12 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 import numpy as np
-from sklearn.metrics import cohen_kappa_score
-from app.datasets.schema import HumanAnnotation, AnnotationLabel
+
 from app.core.logging import logger
+from app.core.ml_compat import cohen_kappa_score
+from app.datasets.schema import HumanAnnotation, AnnotationLabel
 
 
 class AnnotationManager:

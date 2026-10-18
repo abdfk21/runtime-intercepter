@@ -43,6 +43,11 @@ htmlcov/
 *.sqlite
 *.sqlite3
 
+# Large external datasets and archives (>100MB)
+data/processed/
+new made datasets/
+*.zip
+
 # HuggingFace & model cache
 .cache/
 models/

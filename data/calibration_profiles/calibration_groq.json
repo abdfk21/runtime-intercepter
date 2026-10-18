@@ -1,0 +1,20 @@
+{
+  "model_name": "groq",
+  "calibration_method": "grid_search_f1",
+  "threshold": 0.35,
+  "warning_threshold": 0.245,
+  "block_threshold": 0.472,
+  "weights": {
+    "schema_weight": 0.2,
+    "reasoning_weight": 0.4,
+    "consistency_weight": 0.4
+  },
+  "precision": 0.451,
+  "recall": 0.8846,
+  "f1": 0.5974,
+  "false_positive_rate": 0.8235,
+  "false_negative_rate": 0.1154,
+  "validation_size": 60,
+  "dataset_version": "v1.0",
+  "timestamp": "2026-10-03T06:14:46.364932+00:00"
+}

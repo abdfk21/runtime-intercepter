@@ -14,6 +14,7 @@ from app.orchestration.sequential import SequentialPipeline
 from app.orchestration.hierarchical import HierarchicalPipeline
 from app.orchestration.parallel_consensus import ParallelConsensusPipeline
 from app.datasets.generator import DatasetGenerator
+from app.datasets.loader import DatasetLoader
 from app.evaluation.metrics import EvaluationMetrics
 from app.experiments.reproducibility import ReproducibilityTracker
 from app.storage.database import SessionLocal
@@ -52,7 +53,13 @@ class ExperimentManager:
         ]
 
         logger.info(f"Initiating Experiment {exp_id} with {len(models)} models, {len(architectures)} architectures, {num_tasks} tasks.")
-        tasks = self.dataset_gen.generate_tasks(count=max(20, num_tasks))[:num_tasks]
+
+        converted_tasks = DatasetLoader.load_converted_external_tasks()
+        if converted_tasks:
+            tasks = converted_tasks[:max(1, min(num_tasks, len(converted_tasks)))]
+            logger.info(f"Using {len(tasks)} converted external dataset tasks for experiment {exp_id}.")
+        else:
+            tasks = self.dataset_gen.generate_tasks(count=max(20, num_tasks))[:num_tasks]
 
         all_traces: List[Dict[str, Any]] = []
         metadata = ReproducibilityTracker.capture_environment_metadata(self.seed)

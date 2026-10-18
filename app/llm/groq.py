@@ -15,12 +15,13 @@ class GroqProvider(BaseLLMProvider):
 
     def __init__(
         self,
-        model_name: str = "llama-3.3-70b-versatile",
+        model_name: Optional[str] = None,
         temperature: float = 0.2,
         max_tokens: int = 1024,
         api_key: Optional[str] = None,
     ):
-        super().__init__(model_name, temperature, max_tokens)
+        resolved_model = model_name or os.getenv("GROQ_MODEL") or "openai/gpt-oss-120b"
+        super().__init__(resolved_model, temperature, max_tokens)
         self.api_key = api_key or os.getenv("GROQ_API_KEY", "")
         self.base_url = "https://api.groq.com/openai/v1"
 

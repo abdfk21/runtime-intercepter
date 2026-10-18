@@ -10,6 +10,7 @@ class MultiAgentState(TypedDict):
     prompt: str
     trace_id: str
     model_name: str
+    model: Optional[str]
     architecture: str
     interceptor_enabled: bool
     fault_injection_config: Optional[Dict[str, Any]]

@@ -1,8 +1,9 @@
 """FastAPI REST routes for multi-agent interceptor system."""
 
+import os
 import uuid
-from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.api.schemas import (
@@ -70,7 +71,31 @@ def run_task(req: TaskRunRequest, db: Session = Depends(get_db)):
         fault_injection_config=fi_cfg,
     )
 
+    # Attach live provider metadata
+    res["model"] = prov_meta["model_name"]
+    res["model_name"] = prov_meta["model_name"]
+    res["requested_provider"] = prov_meta["requested_provider"]
+    res["actual_provider"] = prov_meta["actual_provider"]
+    res["fallback_used"] = prov_meta["fallback_used"]
+    res["fallback_reason"] = prov_meta.get("fallback_reason")
+    res["is_live_api"] = (prov_meta["actual_provider"] in ["gemini", "groq", "ollama"])
+    res["prompt"] = req.prompt
+
     repo = Repository(db)
+    # Persist the task and trace for full live inspection
+    repo.save_task({
+        "task_id": res["task_id"],
+        "category": "live_user_task",
+        "prompt": req.prompt,
+        "difficulty": "medium",
+        "ground_truth": "",
+        "reference_facts": [],
+        "metadata": {
+            "model": prov_meta["model_name"],
+            "provider": prov_meta["actual_provider"],
+            "is_live_api": res["is_live_api"],
+        },
+    })
     repo.save_trace(res)
     return res
 
@@ -130,37 +155,182 @@ def run_ablation():
     return results
 
 
+@router.get("/traces")
+def list_traces(
+    limit: int = Query(50, ge=1, le=500),
+    model_filter: str = Query("all", description="'all', 'realtime', or 'mock'"),
+    db: Session = Depends(get_db),
+):
+    repo = Repository(db)
+    all_traces = repo.list_traces(limit=limit * 2)
+    output = []
+
+    for t in all_traces:
+        is_live = (t.model != "deterministic-mock-v1")
+        if model_filter == "realtime" and not is_live:
+            continue
+        if model_filter == "mock" and is_live:
+            continue
+
+        prompt_str = t.task.prompt if t.task and t.task.prompt else ""
+        final_answer = ""
+        if isinstance(t.final_output, dict):
+            final_answer = t.final_output.get("answer", "")
+        elif isinstance(t.final_output, str):
+            final_answer = t.final_output
+
+        output.append({
+            "trace_id": t.trace_id,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "model": t.model,
+            "model_name": t.model,
+            "architecture": t.architecture,
+            "condition": t.condition,
+            "fault_injected": t.fault_injected,
+            "fault_type": t.fault_type,
+            "cascade_occurred": t.cascade_occurred,
+            "error_contained": t.error_contained,
+            "total_latency_ms": t.total_latency_ms,
+            "interceptor_latency_ms": t.interceptor_latency_ms,
+            "prompt": prompt_str,
+            "final_answer": final_answer,
+            "is_live_api": is_live,
+            "handoffs_count": len(t.handoffs),
+        })
+
+        if len(output) >= limit:
+            break
+
+    return output
+
+
+@router.get("/metrics/summary")
+def get_metrics_summary(db: Session = Depends(get_db)):
+    repo = Repository(db)
+    traces = repo.list_traces(limit=500)
+
+    total = len(traces)
+    live_traces = [t for t in traces if t.model != "deterministic-mock-v1"]
+    mock_traces = [t for t in traces if t.model == "deterministic-mock-v1"]
+
+    def calc_stats(group):
+        if not group:
+            return {
+                "count": 0,
+                "injected_count": 0,
+                "containment_rate": 0.0,
+                "cascade_rate": 0.0,
+                "avg_latency_ms": 0.0,
+            }
+        injected = [t for t in group if t.fault_injected]
+        contained = [t for t in injected if t.error_contained]
+        cascaded = [t for t in injected if t.cascade_occurred]
+        c_rate = (len(contained) / len(injected) * 100) if injected else 100.0
+        casc_rate = (len(cascaded) / len(injected) * 100) if injected else 0.0
+        avg_lat = sum(t.total_latency_ms for t in group) / len(group)
+        return {
+            "count": len(group),
+            "injected_count": len(injected),
+            "containment_rate": round(c_rate, 1),
+            "cascade_rate": round(casc_rate, 1),
+            "avg_latency_ms": round(avg_lat, 1),
+        }
+
+    # Per-model breakdown
+    model_groups = {}
+    for t in traces:
+        model_groups.setdefault(t.model, []).append(t)
+    models_stats = {m: calc_stats(grp) for m, grp in model_groups.items()}
+
+    # Per-architecture breakdown
+    arch_groups = {}
+    for t in traces:
+        arch_groups.setdefault(t.architecture, []).append(t)
+    arch_stats = {a: calc_stats(grp) for a, grp in arch_groups.items()}
+
+    gemini_key = bool(os.getenv("GEMINI_API_KEY"))
+    groq_key = bool(os.getenv("GROQ_API_KEY"))
+
+    return {
+        "total_traces": total,
+        "has_live_traces": len(live_traces) > 0,
+        "all": calc_stats(traces),
+        "live": calc_stats(live_traces),
+        "mock": calc_stats(mock_traces),
+        "models": models_stats,
+        "architectures": arch_stats,
+        "providers_status": {
+            "gemini": {
+                "configured": gemini_key,
+                "model": os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest"),
+                "status": "online" if gemini_key else "missing_key",
+            },
+            "groq": {
+                "configured": groq_key,
+                "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+                "status": "online" if groq_key else "missing_key",
+            },
+            "mock": {
+                "configured": True,
+                "model": "deterministic-mock-v1",
+                "status": "online",
+            },
+        },
+    }
+
+
 @router.get("/traces/{trace_id}")
 def get_trace_details(trace_id: str, db: Session = Depends(get_db)):
     repo = Repository(db)
     trace = repo.get_trace(trace_id)
     if not trace:
         raise HTTPException(status_code=404, detail=f"Trace {trace_id} not found")
-    
+
+    prompt_str = trace.task.prompt if trace.task and trace.task.prompt else "Multi-Agent System Execution"
+    is_live = (trace.model != "deterministic-mock-v1")
+
+    handoffs_list = []
+    agent_outputs = {}
+    for h in trace.handoffs:
+        explanations = []
+        for det in getattr(h, "detections", []):
+            if det.explanations:
+                explanations.extend(det.explanations)
+
+        handoffs_list.append({
+            "handoff_id": h.handoff_id,
+            "source_agent": h.source_agent,
+            "target_agent": h.target_agent,
+            "decision": h.decision,
+            "risk_score": h.risk_score,
+            "schema_score": h.schema_score,
+            "reasoning_score": h.reasoning_score,
+            "consistency_score": h.consistency_score,
+            "threshold": h.threshold,
+            "latency_ms": h.latency_ms,
+            "explanations": explanations,
+        })
+
     return {
         "trace_id": trace.trace_id,
+        "prompt": prompt_str,
         "model": trace.model,
+        "model_name": trace.model,
         "architecture": trace.architecture,
         "condition": trace.condition,
         "fault_injected": trace.fault_injected,
+        "fault_type": trace.fault_type,
         "cascade_occurred": trace.cascade_occurred,
+        "cascade_depth": trace.cascade_depth,
+        "cascade_severity": trace.cascade_severity,
         "error_contained": trace.error_contained,
         "total_latency_ms": trace.total_latency_ms,
+        "interceptor_latency_ms": trace.interceptor_latency_ms,
+        "repair_latency_ms": trace.repair_latency_ms,
+        "is_live_api": is_live,
         "final_output": trace.final_output,
-        "handoffs": [
-            {
-                "handoff_id": h.handoff_id,
-                "source_agent": h.source_agent,
-                "target_agent": h.target_agent,
-                "decision": h.decision,
-                "risk_score": h.risk_score,
-                "schema_score": h.schema_score,
-                "reasoning_score": h.reasoning_score,
-                "consistency_score": h.consistency_score,
-                "threshold": h.threshold,
-            }
-            for h in trace.handoffs
-        ],
+        "agent_outputs": agent_outputs,
+        "handoffs": handoffs_list,
     }
 
 

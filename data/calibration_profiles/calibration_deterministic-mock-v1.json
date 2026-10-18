@@ -1,20 +1,20 @@
 {
   "model_name": "deterministic-mock-v1",
   "calibration_method": "grid_search_f1",
-  "threshold": 0.39,
-  "warning_threshold": 0.273,
-  "block_threshold": 0.527,
+  "threshold": 0.35,
+  "warning_threshold": 0.245,
+  "block_threshold": 0.472,
   "weights": {
-    "schema_weight": 0.3,
-    "reasoning_weight": 0.35,
-    "consistency_weight": 0.35
+    "schema_weight": 0.2,
+    "reasoning_weight": 0.4,
+    "consistency_weight": 0.4
   },
-  "precision": 0.8485,
-  "recall": 0.3218,
-  "f1": 0.4667,
-  "false_positive_rate": 0.0568,
-  "false_negative_rate": 0.6782,
-  "validation_size": 175,
+  "precision": 0.451,
+  "recall": 0.8846,
+  "f1": 0.5974,
+  "false_positive_rate": 0.8235,
+  "false_negative_rate": 0.1154,
+  "validation_size": 60,
   "dataset_version": "v1.0",
-  "timestamp": "2026-09-23T08:04:08.011149+00:00"
+  "timestamp": "2026-10-03T06:15:12.176489+00:00"
 }

@@ -4,6 +4,15 @@ import pytest
 from app.interceptor.calibration.threshold_optimizer import ThresholdOptimizer
 from app.interceptor.calibration.calibrator import ModelCalibrator
 from app.datasets.generator import DatasetGenerator
+from app.datasets.loader import DatasetLoader
+
+
+def test_load_converted_external_datasets():
+    traces = DatasetLoader.load_converted_external_datasets()
+    assert isinstance(traces, list)
+    if traces:
+        assert all("trace_id" in trace for trace in traces)
+        assert all("prompt" in trace for trace in traces)
 
 
 def test_threshold_optimizer_evaluation():

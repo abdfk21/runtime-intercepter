@@ -232,6 +232,7 @@ class HierarchicalPipeline:
             "prompt": prompt,
             "trace_id": trace_id or f"tr_{uuid.uuid4().hex[:10]}",
             "model_name": self.llm.get_model_name(),
+            "model": self.llm.get_model_name(),
             "architecture": "hierarchical",
             "interceptor_enabled": interceptor_enabled,
             "fault_injection_config": fault_injection_config,

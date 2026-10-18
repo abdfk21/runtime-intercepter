@@ -2,19 +2,19 @@ models:
   gemini:
     provider: "gemini"
     enabled: true
-    model_name: "gemini-2.5-flash"
+    model_name: "gemini-flash-lite-latest"
     api_key_env: "GEMINI_API_KEY"
     temperature: 0.2
     max_tokens: 1024
-    description: "Google Gemini 2.5 Flash model"
+    description: "Google Gemini Flash Lite model (Active Real-Time API)"
   groq:
     provider: "groq"
     enabled: true
-    model_name: "llama-3.3-70b-versatile"
+    model_name: "openai/gpt-oss-120b"
     api_key_env: "GROQ_API_KEY"
     temperature: 0.2
     max_tokens: 1024
-    description: "Groq high-speed Llama 3.3 model"
+    description: "Groq high-speed OSS model (Active Real-Time API)"
   ollama:
     provider: "ollama"
     enabled: true

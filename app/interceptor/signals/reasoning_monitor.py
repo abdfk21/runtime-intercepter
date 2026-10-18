@@ -2,10 +2,18 @@
 
 import re
 from typing import Any, Dict, List, Optional, Set, Tuple
+
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+from app.core.ml_compat import semantic_similarity_fallback
 from app.interceptor.handoff import SignalDetails
+
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+except Exception:  # pragma: no cover - fallback for locked-down Windows environments
+    TfidfVectorizer = None
+    cosine_similarity = None
 
 
 class ReasoningMonitor:
@@ -38,16 +46,16 @@ class ReasoningMonitor:
 
         corpus = [query] + valid_refs
         try:
+            if TfidfVectorizer is None or cosine_similarity is None:
+                raise RuntimeError("scikit-learn is unavailable")
             vectorizer = TfidfVectorizer(ngram_range=(2, 4), analyzer="char_wb")
             tfidf = vectorizer.fit_transform(corpus)
             sims = cosine_similarity(tfidf[0:1], tfidf[1:]).flatten()
-            return float(np.max(sims)) if len(sims) > 0 else 0.0
+            val = float(np.max(sims)) if len(sims) > 0 else 0.0
+            return max(0.0, min(1.0, val))
         except Exception:
-            q_words = set(query.lower().split())
-            ref_words = set(" ".join(valid_refs).lower().split())
-            if not q_words:
-                return 0.0
-            return len(q_words & ref_words) / len(q_words)
+            val = float(semantic_similarity_fallback(query, valid_refs))
+            return max(0.0, min(1.0, val))
 
     def evaluate(self, output: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> SignalDetails:
         context = context or {}

@@ -10,29 +10,31 @@
 <body>
   <header class="navbar">
     <div class="logo">
-      <span class="icon">🛡️</span>
+      <span class="icon"></span>
       <div class="titles">
         <h2>Runtime Interceptor for Hallucination Cascades</h2>
         <span class="subtitle">Adaptive, Architecture-Aware Multi-Agent Error Containment</span>
       </div>
     </div>
     <div class="system-status">
-      <span class="badge online">System Operational</span>
-      <span class="badge mode">Mode: Active Containment</span>
+    <div class="system-status">
+      <span class="badge online" id="system-status-badge"><span class="pulse-dot"></span> System Operational</span>
+      <span class="badge mode" id="provider-badge">Provider: Active</span>
+      <span class="badge" id="api-status-badge" style="background: #064e3b; color: #a7f3d0; border: 1px solid #10b981;">⚡ Real-Time APIs: Active</span>
     </div>
   </header>
 
   <div class="container">
     <nav class="sidebar">
-      <button class="nav-item active" onclick="switchTab('overview')">📊 Overview</button>
-      <button class="nav-item" onclick="switchTab('trace-viewer')">🔍 Live Trace Viewer</button>
-      <button class="nav-item" onclick="switchTab('model-comparison')">🤖 Model Comparison</button>
-      <button class="nav-item" onclick="switchTab('architecture-comparison')">🏛️ Architecture Comparison</button>
-      <button class="nav-item" onclick="switchTab('calibration')">🎯 Calibration</button>
-      <button class="nav-item" onclick="switchTab('ablation')">🧪 Ablation Study</button>
-      <button class="nav-item" onclick="switchTab('experiments')">📋 Experiment Results</button>
-      <button class="nav-item" onclick="switchTab('statistics')">📈 Statistical Analysis</button>
-      <button class="nav-item" onclick="switchTab('annotation')">✍️ Human Annotation</button>
+      <button class="nav-item active" onclick="switchTab('overview')"> Overview</button>
+      <button class="nav-item" onclick="switchTab('trace-viewer')"> Live Trace Viewer</button>
+      <button class="nav-item" onclick="switchTab('model-comparison')"> Model Comparison</button>
+      <button class="nav-item" onclick="switchTab('architecture-comparison')"> Architecture Comparison</button>
+      <button class="nav-item" onclick="switchTab('calibration')"> Calibration</button>
+      <button class="nav-item" onclick="switchTab('ablation')"> Ablation Study</button>
+      <button class="nav-item" onclick="switchTab('experiments')"> Experiment Results</button>
+      <button class="nav-item" onclick="switchTab('statistics')"> Statistical Analysis</button>
+      <button class="nav-item" onclick="switchTab('annotation')"> Human Annotation</button>
     </nav>
 
     <main class="content">
@@ -43,26 +45,39 @@
           <p>Real-time telemetry and aggregated error containment statistics.</p>
         </div>
 
+        <!-- Telemetry Source Toggle Bar -->
+        <div class="telemetry-filter-bar">
+          <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;">Telemetry Filter:</span>
+          <button class="filter-btn active" id="btn-telemetry-live" onclick="setOverviewFilter('live')">⚡ Real-Time API Agents</button>
+          <button class="filter-btn" id="btn-telemetry-all" onclick="setOverviewFilter('all')">🌐 All Database Traces</button>
+          <button class="filter-btn" id="btn-telemetry-mock" onclick="setOverviewFilter('mock')">🧪 Mock Benchmark Baseline</button>
+        </div>
+
+        <div id="overview-source-banner" class="info-banner" style="margin-bottom: 1.25rem;">
+          <span class="pulse-dot"></span>
+          <span id="overview-source-text"><strong>Displaying Real-Time API Agent Telemetry</strong> (Captured from live Groq & Gemini multi-agent runs)</span>
+        </div>
+
         <div class="metrics-grid">
           <div class="card stat-card">
             <span class="stat-label">Total Traces</span>
-            <span class="stat-value" id="stat-total-traces">350</span>
-            <span class="stat-sub">Across 8 task domains</span>
+            <span class="stat-value" id="stat-total-traces">--</span>
+            <span class="stat-sub" id="stat-total-traces-sub">Loading live metrics...</span>
           </div>
           <div class="card stat-card">
             <span class="stat-label">Containment Rate (ON)</span>
-            <span class="stat-value text-success" id="stat-containment-rate">88.5%</span>
-            <span class="stat-sub">+68.2% vs Interceptor OFF</span>
+            <span class="stat-value text-success" id="stat-containment-rate">--</span>
+            <span class="stat-sub" id="stat-containment-sub">Runtime Interceptor containment</span>
           </div>
           <div class="card stat-card">
             <span class="stat-label">Cascade Rate (OFF)</span>
-            <span class="stat-value text-danger" id="stat-cascade-rate">79.7%</span>
-            <span class="stat-sub">Unchecked propagation</span>
+            <span class="stat-value text-danger" id="stat-cascade-rate">--</span>
+            <span class="stat-sub" id="stat-cascade-sub">Unchecked propagation</span>
           </div>
           <div class="card stat-card">
             <span class="stat-label">Avg Pipeline Latency</span>
-            <span class="stat-value" id="stat-latency">142 ms</span>
-            <span class="stat-sub">Interceptor overhead ~25ms</span>
+            <span class="stat-value" id="stat-latency">--</span>
+            <span class="stat-sub" id="stat-latency-sub">End-to-end multi-agent execution</span>
           </div>
         </div>
 
@@ -82,16 +97,24 @@
       <section id="trace-viewer" class="tab-pane">
         <div class="section-header">
           <h3>Interactive Agent Handoff Inspection</h3>
-          <p>Execute live tasks and inspect observable signals across multi-agent handoffs.</p>
+          <p>Execute live tasks with real-time API LLM backends and inspect observable signals across multi-agent handoffs.</p>
         </div>
 
         <div class="card task-runner">
-          <h4>Execute Multi-Agent Task</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h4>Execute Multi-Agent Task</h4>
+            <span class="pill pill-green" id="active-model-indicator">⚡ Groq & ✨ Gemini Ready</span>
+          </div>
           <div class="form-row">
-            <input type="text" id="interactive-prompt" class="input" value="What is the capital city of Australia and when was it founded?">
+            <input type="text" id="interactive-prompt" class="input" style="flex: 2;" value="What is the capital city of Australia and when was it founded?">
+            <select id="interactive-model" class="input">
+              <option value="groq" selected>⚡ Groq (openai/gpt-oss-120b - Real-Time API)</option>
+              <option value="gemini">✨ Gemini (gemini-flash-lite-latest - Real-Time API)</option>
+              <option value="mock">🧪 Offline Mock (deterministic-mock-v1 - Zero Cost)</option>
+            </select>
             <select id="interactive-arch" class="input">
-              <option value="sequential">Sequential (Linear)</option>
-              <option value="hierarchical">Hierarchical (Supervisor)</option>
+              <option value="sequential">Sequential (Linear: Researcher &rarr; Verifier &rarr; Critic &rarr; Synthesizer)</option>
+              <option value="hierarchical">Hierarchical (Supervisor-Directed)</option>
               <option value="parallel_consensus">Parallel-Consensus</option>
             </select>
             <label class="toggle-label">
@@ -99,10 +122,19 @@
             </label>
             <button class="btn btn-primary" onclick="runLiveTask()">Run Task</button>
           </div>
+
+          <!-- Prompt Presets for Quick Testing -->
+          <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Quick Presets:</span>
+            <button class="preset-btn" onclick="setPresetPrompt('What is the capital city of Australia and when was it founded?')">Australia Capital</button>
+            <button class="preset-btn" onclick="setPresetPrompt('Explain the process of cellular respiration and its ATP yield.')">Cellular Respiration</button>
+            <button class="preset-btn" onclick="setPresetPrompt('Summarize the primary differences between general and special relativity.')">Relativity Theory</button>
+            <button class="preset-btn" onclick="setPresetPrompt('Who discovered penicillin, in what year, and what was its impact on medicine?')">Penicillin Discovery</button>
+          </div>
         </div>
 
         <div id="live-trace-results" class="trace-flow-container">
-          <div class="flow-placeholder">Click 'Run Task' to observe agent handoffs, signal scores, and decisions.</div>
+          <div class="flow-placeholder">Click 'Run Task' to observe real-time agent handoffs, signal scores, and decisions.</div>
         </div>
       </section>
 
@@ -110,7 +142,7 @@
       <section id="model-comparison" class="tab-pane">
         <div class="section-header">
           <h3>Cross-Model Error & Calibration Comparison</h3>
-          <p>Comparative detection performance and containment across LLM backends.</p>
+          <p>Comparative detection performance and containment across live LLM backends and baseline mock.</p>
         </div>
         <div class="card chart-container">
           <canvas id="chart-models"></canvas>
@@ -118,12 +150,10 @@
         <div class="card table-container">
           <table class="data-table">
             <thead>
-              <tr><th>Model Name</th><th>Architecture</th><th>Fixed F1</th><th>Adaptive F1</th><th>Containment Gain</th></tr>
+              <tr><th>Model Name</th><th>Engine Type</th><th>Traces Executed</th><th>Avg Latency</th><th>Containment Rate</th><th>Cascade Rate</th></tr>
             </thead>
-            <tbody>
-              <tr><td>deterministic-mock-v1</td><td>All</td><td>0.742</td><td>0.891</td><td>+65.4%</td></tr>
-              <tr><td>gemini-2.5-flash</td><td>All</td><td>0.768</td><td>0.912</td><td>+71.0%</td></tr>
-              <tr><td>llama-3.3-70b-versatile</td><td>All</td><td>0.751</td><td>0.884</td><td>+68.5%</td></tr>
+            <tbody id="model-comparison-tbody">
+              <!-- Dynamically populated from /metrics/summary -->
             </tbody>
           </table>
         </div>
@@ -174,11 +204,18 @@
       <!-- 7. EXPERIMENT RESULTS -->
       <section id="experiments" class="tab-pane">
         <div class="section-header">
-          <h3>Automated Benchmark Results</h3>
-          <p>Complete execution history and artifact links.</p>
+          <h3>Execution History & Trace Explorer</h3>
+          <p>Inspect all executed multi-agent traces across real-time API backends and offline benchmarks.</p>
         </div>
         <div class="card">
-          <button class="btn btn-secondary" onclick="loadTracesTable()">Refresh Traces</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="filter-btn active" id="tbl-filter-all" onclick="loadTracesTable('all')">🌐 All Traces</button>
+              <button class="filter-btn" id="tbl-filter-realtime" onclick="loadTracesTable('realtime')">⚡ Real-Time API Only</button>
+              <button class="filter-btn" id="tbl-filter-mock" onclick="loadTracesTable('mock')">🧪 Mock Baseline Only</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadTracesTable()">🔄 Refresh Traces</button>
+          </div>
           <div id="traces-table-box" class="table-container">
             <p>Traces will load dynamically...</p>
           </div>

@@ -42,5 +42,14 @@ Runs adaptive threshold optimization on validation data for a designated model.
 ### 5. `GET /calibration/{model}`
 Retrieves saved `ModelCalibrationProfile` JSON.
 
-### 6. `POST /annotations` & `GET /annotations`
+### 6. `GET /traces`
+Lists recorded multi-agent execution traces with query filters for pagination (`limit`) and model type (`all`, `realtime`, `mock`).
+
+### 7. `GET /traces/{trace_id}`
+Retrieves deep trace telemetry for a specific execution, including individual handoffs, signal risk scores, detection explanations, and containment decisions.
+
+### 8. `GET /metrics/summary`
+Calculates real-time aggregated metrics across all traces, comparing live vs. mock containment rates, cascade rates, average latency, per-model breakdowns, and provider connectivity status.
+
+### 9. `POST /annotations` & `GET /annotations`
 Records and queries human validation ratings.

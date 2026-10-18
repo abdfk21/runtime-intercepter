@@ -119,4 +119,18 @@ class ModelCalibrator:
         filepath = self.profiles_dir / f"calibration_{safe_name}.json"
         if filepath.exists():
             return ModelCalibrationProfile.load(filepath)
+
+        # Check provider and legacy model aliases
+        aliases = {
+            "gemini-flash-lite-latest": "gemini",
+            "gemini-3.8-flash": "gemini",
+            "gemini-2.5-flash": "gemini",
+            "openai_gpt-oss-120b": "groq",
+            "openai/gpt-oss-120b": "groq",
+            "llama-3.3-70b-versatile": "groq",
+        }
+        if model_name in aliases:
+            alias_path = self.profiles_dir / f"calibration_{aliases[model_name]}.json"
+            if alias_path.exists():
+                return ModelCalibrationProfile.load(alias_path)
         return None
